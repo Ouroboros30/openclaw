@@ -1,9 +1,7 @@
 import { Type } from "@sinclair/typebox";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import type { OpenClawConfig } from "../../config/config.js";
 import type { AnyAgentTool } from "./common.js";
-import { loadConfig } from "../../config/config.js";
 import { transcribeOpenAiCompatibleAudio } from "../../media-understanding/providers/openai/audio.js";
 import { readStringParam } from "./common.js";
 
@@ -18,7 +16,7 @@ const TranscribeAudioToolSchema = Type.Object({
   ),
 });
 
-export function createTranscribeAudioTool(opts?: { config?: OpenClawConfig }): AnyAgentTool {
+export function createTranscribeAudioTool(_opts?: { config?: unknown }): AnyAgentTool {
   return {
     label: "Transcribe Audio",
     name: "transcribe_audio",
@@ -35,11 +33,8 @@ export function createTranscribeAudioTool(opts?: { config?: OpenClawConfig }): A
         const buffer = await readFile(filePath);
         const fileName = path.basename(filePath);
 
-        // Get API key from config or environment
-        const cfg = opts?.config ?? loadConfig();
-        const apiKey =
-          cfg.llmProviders?.find((p) => p.id === "anthropic" || p.id === "openai")?.apiKey ??
-          process.env.OPENAI_API_KEY;
+        // Get API key from environment
+        const apiKey = process.env.OPENAI_API_KEY;
 
         if (!apiKey) {
           return {
