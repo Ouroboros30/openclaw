@@ -267,6 +267,14 @@ export function resolveSessionFilePath(
   const sessionsDir = resolveSessionsDir(opts);
   const candidate = entry?.sessionFile?.trim();
   if (candidate) {
+    // Absolute paths were already resolved when stored; validate and return directly.
+    if (path.isAbsolute(candidate)) {
+      const normalized = path.normalize(candidate);
+      if (normalized.includes("\0")) {
+        throw new Error("Session file path must be within sessions directory");
+      }
+      return normalized;
+    }
     try {
       return resolvePathWithinSessionsDir(sessionsDir, candidate, { agentId: opts?.agentId });
     } catch {
